@@ -5,7 +5,7 @@ using UnityEngine;
 public class Bullet : MonoBehaviour {
 
 	public float speed = 100f;
-	public float damage = 1f;
+	public int damage = 1;
 	public Vector3 direction;
 	public Vector3 target;
 	// Use this for initialization
@@ -23,6 +23,12 @@ public class Bullet : MonoBehaviour {
 
 	void OnTriggerEnter(Collider other) {
 		if (other.gameObject.name != "Gun") {
+			
+			if (other.gameObject.tag == "Enemy") {
+				other.gameObject.GetComponent<Enemy> ().TakeDamage (damage);
+			} else if (other.gameObject.tag == "Player") {
+				other.gameObject.GetComponent<teleportTest> ().TakeDamage (damage);
+			}
 			Destroy (gameObject);
 		}
 	}

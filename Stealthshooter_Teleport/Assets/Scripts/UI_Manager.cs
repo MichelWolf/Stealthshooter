@@ -6,19 +6,22 @@ using UnityEngine.UI;
 public class UI_Manager : MonoBehaviour {
 
 	public Text Ammo;
+	public Slider manaSlider;
+	public Slider healthSlider;
 
-	// Use this for initialization
-	void Start () {
-		
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
-
+	//Zeigt Munition im UI an
 	public void UpdateAmmo(int currAmmo, int maxAmmo)
 	{
 		Ammo.text = "" + currAmmo + "/" + maxAmmo;
+	}
+	//Passt den Wert der Lebensanzeige an
+	public void UpdateMana(int manaValue)
+	{
+		manaSlider.value = manaValue;
+	}
+	//Passt den Wert der Manaanzeige an
+	public void UpdateHealth(int healthValue)
+	{
+		healthSlider.value = healthValue;
 	}
 }

@@ -10,27 +10,35 @@ public class FP_Controller : MonoBehaviour {
 	public float walkSpeed;
 	public GameObject equippedGun;
 
+	public float jumpVelocity;
+	public float fallJumpMultiplier = 2.5f;
+	public float lowJumpMultiplier = 2f;
+	Rigidbody rb;
+
 	// Use this for initialization
 	void Start () {
 		Cursor.lockState = CursorLockMode.Locked;
 		ui_manager = GameObject.FindObjectOfType<UI_Manager> ();
 		ui_manager.UpdateAmmo (equippedGun.GetComponent<Gun> ().currentAmmo, equippedGun.GetComponent<Gun> ().maxAmmo);
+		rb = GetComponent<Rigidbody> ();
 	}
-	
+
 	// Update is called once per frame
 	void Update () {
-		/*float translation = Input.GetAxis ("Vertical") * walkSpeed;
+		float translation = Input.GetAxis ("Vertical") * walkSpeed;
 		float straffe = Input.GetAxis ("Horizontal") * walkSpeed;
 		translation *= Time.deltaTime;
 		straffe *= Time.deltaTime;
 
 		transform.Translate (straffe, 0, translation);
-		*/
+
 
 		if (Input.GetKeyDown ("escape"))
 			Cursor.lockState = CursorLockMode.None;
 
-		if (Input.GetButtonDown ("Fire1")) {
+
+
+		if (Input.GetButtonDown ("Fire1") && !(equippedGun.GetComponent<Gun>().isReloading)) {
 
 			Vector3 rayOrigin = Camera.main.ViewportToWorldPoint (new Vector3(0.5f, 0.5f, 0.0f));
 
@@ -40,12 +48,23 @@ public class FP_Controller : MonoBehaviour {
 				ui_manager.UpdateAmmo (equippedGun.GetComponent<Gun> ().currentAmmo, equippedGun.GetComponent<Gun> ().maxAmmo);
 			}
 		}
-		if (Input.GetKeyDown (KeyCode.R)) 
+		if (Input.GetKeyDown (KeyCode.R) && !(equippedGun.GetComponent<Gun>().isReloading)) 
 		{
-			equippedGun.GetComponent<Gun>().Reload ();
-			ui_manager.UpdateAmmo (equippedGun.GetComponent<Gun> ().currentAmmo, equippedGun.GetComponent<Gun> ().maxAmmo);
+			StartCoroutine(equippedGun.GetComponent<Gun>().Reload ());
+			//ui_manager.UpdateAmmo (equippedGun.GetComponent<Gun> ().currentAmmo, equippedGun.GetComponent<Gun> ().maxAmmo);
 		}
 
 
+	}
+
+	void FixedUpdate(){
+		if (Input.GetButtonDown ("Jump")) {
+			rb.velocity = Vector3.up * jumpVelocity;
+		}
+		if (rb.velocity.y < 0) {
+			rb.velocity += Vector3.up * Physics.gravity.y * (fallJumpMultiplier - 1) * Time.deltaTime;
+		} else if (rb.velocity.y > 0 && !Input.GetButton ("Jump")) {
+			rb.velocity += Vector3.up * Physics.gravity.y * (lowJumpMultiplier - 1) * Time.deltaTime;
+		}
 	}
 }

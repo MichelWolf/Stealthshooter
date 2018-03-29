@@ -13,6 +13,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
         [SerializeField] private bool m_IsWalking;
         [SerializeField] private float m_WalkSpeed;
         [SerializeField] private float m_RunSpeed;
+		//[SerializeField] private float m_CrouchSpeed; //Crouching
         [SerializeField] [Range(0f, 1f)] private float m_RunstepLenghten;
         [SerializeField] private float m_JumpSpeed;
         [SerializeField] private float m_StickToGroundForce;
@@ -42,6 +43,9 @@ namespace UnityStandardAssets.Characters.FirstPerson
         private bool m_Jumping;
         private AudioSource m_AudioSource;
 
+		//Crouch
+		//public bool isCrouching = false;
+		//public GameObject Player;
         // Use this for initialization
         private void Start()
         {
@@ -79,6 +83,21 @@ namespace UnityStandardAssets.Characters.FirstPerson
             {
                 m_MoveDir.y = 0f;
             }
+
+			//Test für crouch
+			/*if (Input.GetKeyDown (KeyCode.LeftControl)) {
+				if (isCrouching == false) {
+					isCrouching = true;
+					m_CharacterController.height -= 0.5f;
+				}
+			}
+			if (Input.GetKeyUp (KeyCode.LeftControl)) {
+				if (isCrouching == true) {
+					isCrouching = false;
+					m_CharacterController.height += 0.5f;
+				}
+			}*/
+			//
 
             m_PreviouslyGrounded = m_CharacterController.isGrounded;
         }

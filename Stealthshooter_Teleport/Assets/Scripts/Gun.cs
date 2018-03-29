@@ -9,8 +9,12 @@ public class Gun : MonoBehaviour {
 	public float fireCooldown = 0.5f;
 	float fireCooldownLeft = 0f;
 	public GameObject bullet;
+
 	public int maxAmmo = 7;
 	public int currentAmmo;
+	public float reloadTime = 1f;
+	internal bool isReloading = false;
+
 	public Transform gunEnd;
 
 	// Use this for initialization
@@ -18,7 +22,7 @@ public class Gun : MonoBehaviour {
 	{
 		currentAmmo = maxAmmo;
 	}
-	
+
 	// Update is called once per frame
 	void Update () 
 	{
@@ -36,7 +40,11 @@ public class Gun : MonoBehaviour {
 		}
 
 	}
-	public void Reload(){
+	public IEnumerator Reload(){
+		isReloading = true;
+		yield return new WaitForSeconds (reloadTime);
 		currentAmmo = maxAmmo;
+		isReloading = false;
+		GameObject.FindObjectOfType<UI_Manager> ().UpdateAmmo(currentAmmo, maxAmmo);
 	}
 }

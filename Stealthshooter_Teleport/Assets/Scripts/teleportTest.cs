@@ -1,17 +1,33 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using UnityStandardAssets.Characters.FirstPerson;
 
 public class teleportTest : MonoBehaviour {
 
-    private RaycastHit lastRaycastHit;
+	private RaycastHit lastRaycastHit;
 	private RaycastHit checkAbove;
-    private RaycastHit lastCapsuleCastHit;
-    public float range = 0;
-    public GameObject spawnThing;
-    private GameObject spawnedThing;
+	private RaycastHit lastCapsuleCastHit;
+	public float range = 0;
+	public GameObject spawnThing;
+	private GameObject spawnedThing;
 	public bool isLedge = false;
 	public float ledgeDetectionRange = 1.0f;
+
+	public int maxMana = 100;
+	public int currentMana;
+	public int teleportCost = 10;
+	public float timeForManaRegen = 5f;
+	private float manaRegenCooldown = 0f;
+
+	public int maxHealth = 100;
+	public int currentHealth;
+	public float timeForHealthRegen = 10f;
+	private float healthRegenCooldown = 0f;
+
+	public float respawnTime = 5f;
+	public GameObject spawnpoint;
 
 	//Debugging
 	public Vector3 raycastHitPosition;
@@ -22,8 +38,11 @@ public class teleportTest : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-        spawnedThing = Instantiate(spawnThing, new Vector3(0, 0, 0), Quaternion.identity);
+		spawnedThing = Instantiate(spawnThing, new Vector3(0, 0, 0), Quaternion.identity);
+		spawnedThing.SetActive (false);
 		charContr = GetComponent<CharacterController>();
+		currentMana = maxMana;
+		currentHealth = maxHealth;
 	}
 
 	// Update is called once per frame
@@ -89,34 +108,53 @@ public class teleportTest : MonoBehaviour {
 						spawnedThing.GetComponent<teleportIndicator> ().SetTeleportPossible (false);
 					}
 				}
-					
+
 			}
 
-			if (Input.GetKeyUp(KeyCode.E) && spawnedThing.GetComponent<teleportIndicator>().IsTeleportPossible())
+			if (Input.GetKeyUp(KeyCode.E))
 			{
 				// teleport me to the indicator
 				spawnedThing.SetActive(false);
-				TeleportTo(spawnedThing.transform.position, lastRaycastHit.normal);
+				if (spawnedThing.GetComponent<teleportIndicator> ().IsTeleportPossible () && currentMana >= teleportCost) {
+					TeleportTo (spawnedThing.transform.position, lastRaycastHit.normal);
+					currentMana -= teleportCost;
+					GameObject.FindObjectOfType<UI_Manager> ().UpdateMana(currentMana);
+					manaRegenCooldown = timeForManaRegen;
+				}
 			}
 		}
 		//Debug
 		raycastHitPosition = lastRaycastHit.point;
+		if (manaRegenCooldown > 0f) {
+			manaRegenCooldown -= Time.deltaTime;
+		}
+		if (currentMana < maxMana && manaRegenCooldown <= 0f) {
+			currentMana++;
+			GameObject.FindObjectOfType<UI_Manager> ().UpdateMana(currentMana);
+		}
+		if (healthRegenCooldown > 0f) {
+			healthRegenCooldown -= Time.deltaTime;
+		}
+		if (currentHealth < maxHealth && healthRegenCooldown <= 0f) {
+			currentHealth++;
+			GameObject.FindObjectOfType<UI_Manager> ().UpdateHealth(currentHealth);
+		}
 	}
 
-    private bool IsLookingAtObject()
-    {
+	private bool IsLookingAtObject()
+	{
 		Vector3 origin = Camera.main.ViewportToWorldPoint (new Vector3(0.5f, 0.5f, 0.0f));
-        Vector3 direction = Camera.main.transform.forward;
+		Vector3 direction = Camera.main.transform.forward;
 
-        if (Physics.Raycast(origin, direction, out lastRaycastHit, range))
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
+		if (Physics.Raycast(origin, direction, out lastRaycastHit, range))
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
 
 	private Vector3 GetPositionWhenNothingHit()
 	{
@@ -124,12 +162,12 @@ public class teleportTest : MonoBehaviour {
 		Vector3 direction = Camera.main.transform.forward;
 		return origin + (direction * range);
 	}
-		
+
 	private bool DoesPlayerFit(int state)
 	{
-	//state == 0, check nach oben
-	//state == 1, check an Kante
-	//state == 2, check von oben
+		//state == 0, check nach oben
+		//state == 1, check an Kante
+		//state == 2, check von oben
 		//CharacterController charContr = GetComponent<CharacterController>();
 		isLedge = false;
 		if (state == 0) {
@@ -246,4 +284,34 @@ public class teleportTest : MonoBehaviour {
 		//transform.position = lastRaycastHit.point; + lastRaycastHit.normal;
 		transform.position = position;// + normal;
 	}
+
+	public void TakeDamage(int damage){
+		currentHealth -= damage;
+		healthRegenCooldown = timeForHealthRegen;
+		GameObject.FindObjectOfType<UI_Manager> ().UpdateHealth(currentHealth);
+		if (currentHealth <= 0) {
+			StartCoroutine(Respawn ());
+		}
+	}
+
+	public IEnumerator Respawn(){
+		this.gameObject.GetComponent<FirstPersonController> ().enabled = false;
+		yield return new WaitForSeconds (respawnTime);
+		this.gameObject.GetComponent<FirstPersonController> ().enabled = true;
+		this.transform.position = spawnpoint.transform.position;
+		currentHealth = maxHealth;
+		currentMana = maxMana;
+		GameObject.FindObjectOfType<UI_Manager> ().UpdateHealth(currentHealth);
+		GameObject.FindObjectOfType<UI_Manager> ().UpdateMana(currentMana);
+		//Destroy (this.gameObject);
+	}
+	/*public void Respawn(){
+		
+		this.transform.position = spawnpoint.transform.position;
+		currentHealth = maxHealth;
+		currentMana = maxMana;
+		GameObject.FindObjectOfType<UI_Manager> ().UpdateHealth(currentHealth);
+		GameObject.FindObjectOfType<UI_Manager> ().UpdateMana(currentMana);
+		//Destroy (this.gameObject);
+	}*/
 }
