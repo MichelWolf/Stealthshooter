@@ -27,7 +27,7 @@ public class Bullet : MonoBehaviour {
 			if (other.gameObject.tag == "Enemy") {
 				other.gameObject.GetComponent<Enemy> ().TakeDamage (damage);
 			} else if (other.gameObject.tag == "Player") {
-				other.gameObject.GetComponent<teleportTest> ().TakeDamage (damage);
+				other.gameObject.GetComponent<Character> ().TakeDamage (damage);
 			}
 			Destroy (gameObject);
 		}

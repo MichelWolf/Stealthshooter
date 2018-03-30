@@ -9,7 +9,8 @@ public class Character : MonoBehaviour
 	public float crouchSpeed = 3f;
 	public enum WalkingMode {crouching, walking, running};
 	public WalkingMode walkingMode = WalkingMode.walking;
-	public float speed = 5f;
+	public float standHeight = 2f;
+	public float crouchHeight = 1.5f;
 
 	public float jumpHeight = 2f;
 	public GameObject camTest;
@@ -51,6 +52,7 @@ public class Character : MonoBehaviour
 			velocity.y = 0f;
 
 		if (walkingMode == WalkingMode.walking) {
+			charContr.height = standHeight;
 			float translation = Input.GetAxis ("Vertical") * walkSpeed;
 			float straffe = Input.GetAxis ("Horizontal") * walkSpeed;
 			translation *= Time.deltaTime;
@@ -58,6 +60,7 @@ public class Character : MonoBehaviour
 
 			transform.Translate (straffe, 0, translation);
 		}else if (walkingMode == WalkingMode.running) {
+			charContr.height = standHeight;
 			float translation = Input.GetAxis ("Vertical") * runSpeed;
 			float straffe = Input.GetAxis ("Horizontal") * runSpeed;
 			translation *= Time.deltaTime;
@@ -65,6 +68,7 @@ public class Character : MonoBehaviour
 
 			transform.Translate (straffe, 0, translation);
 		} else if (walkingMode == WalkingMode.crouching) {
+			charContr.height = crouchHeight;
 			float translation = Input.GetAxis ("Vertical") * crouchSpeed;
 			float straffe = Input.GetAxis ("Horizontal") * crouchSpeed;
 			translation *= Time.deltaTime;
@@ -102,7 +106,22 @@ public class Character : MonoBehaviour
 		if (Input.GetKeyDown (KeyCode.R) && !(equippedGun.GetComponent<Gun>().isReloading)) 
 		{
 			StartCoroutine(equippedGun.GetComponent<Gun>().Reload ());
-			//ui_manager.UpdateAmmo (equippedGun.GetComponent<Gun> ().currentAmmo, equippedGun.GetComponent<Gun> ().maxAmmo);
+		}
+
+		//Mana und Lebensregeneration
+		if (manaRegenCooldown > 0f) {
+			manaRegenCooldown -= Time.deltaTime;
+		}
+		if (currentMana < maxMana && manaRegenCooldown <= 0f) {
+			currentMana++;
+			GameObject.FindObjectOfType<UI_Manager> ().UpdateMana(currentMana);
+		}
+		if (healthRegenCooldown > 0f) {
+			healthRegenCooldown -= Time.deltaTime;
+		}
+		if (currentHealth < maxHealth && healthRegenCooldown <= 0f) {
+			currentHealth++;
+			GameObject.FindObjectOfType<UI_Manager> ().UpdateHealth(currentHealth);
 		}
 	}
 
@@ -116,5 +135,26 @@ public class Character : MonoBehaviour
 			return;
 		}
 		walkingMode = WalkingMode.walking;
+	}
+
+	public void TakeDamage(int damage){
+		currentHealth -= damage;
+		healthRegenCooldown = timeForHealthRegen;
+		GameObject.FindObjectOfType<UI_Manager> ().UpdateHealth(currentHealth);
+		if (currentHealth <= 0) {
+			StartCoroutine(Respawn ());
+		}
+	}
+
+	public IEnumerator Respawn(){
+		this.gameObject.GetComponent<Character> ().enabled = false;
+		yield return new WaitForSeconds (respawnTime);
+		this.gameObject.GetComponent<Character> ().enabled = true;
+		this.transform.position = spawnpoint.transform.position;
+		currentHealth = maxHealth;
+		currentMana = maxMana;
+		GameObject.FindObjectOfType<UI_Manager> ().UpdateHealth(currentHealth);
+		GameObject.FindObjectOfType<UI_Manager> ().UpdateMana(currentMana);
+		//Destroy (this.gameObject);
 	}
 }
