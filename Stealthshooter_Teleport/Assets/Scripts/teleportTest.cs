@@ -15,19 +15,7 @@ public class teleportTest : MonoBehaviour {
 	public bool isLedge = false;
 	public float ledgeDetectionRange = 1.0f;
 
-	public int maxMana = 100;
-	public int currentMana;
-	public int teleportCost = 10;
-	public float timeForManaRegen = 5f;
-	private float manaRegenCooldown = 0f;
 
-	public int maxHealth = 100;
-	public int currentHealth;
-	public float timeForHealthRegen = 10f;
-	private float healthRegenCooldown = 0f;
-
-	public float respawnTime = 5f;
-	public GameObject spawnpoint;
 
 	//Debugging
 	public Vector3 raycastHitPosition;
@@ -35,14 +23,14 @@ public class teleportTest : MonoBehaviour {
 	public Vector3 p2;
 
 	private CharacterController charContr;
+	private Character character;
 
 	// Use this for initialization
 	void Start () {
 		spawnedThing = Instantiate(spawnThing, new Vector3(0, 0, 0), Quaternion.identity);
 		spawnedThing.SetActive (false);
 		charContr = GetComponent<CharacterController>();
-		currentMana = maxMana;
-		currentHealth = maxHealth;
+		character = GetComponent<Character> ();
 	}
 
 	// Update is called once per frame
@@ -115,29 +103,29 @@ public class teleportTest : MonoBehaviour {
 			{
 				// teleport me to the indicator
 				spawnedThing.SetActive(false);
-				if (spawnedThing.GetComponent<teleportIndicator> ().IsTeleportPossible () && currentMana >= teleportCost) {
+				if (spawnedThing.GetComponent<teleportIndicator> ().IsTeleportPossible () && character.currentMana >= character.teleportCost) {
 					TeleportTo (spawnedThing.transform.position, lastRaycastHit.normal);
-					currentMana -= teleportCost;
-					GameObject.FindObjectOfType<UI_Manager> ().UpdateMana(currentMana);
-					manaRegenCooldown = timeForManaRegen;
+					character.currentMana -= character.teleportCost;
+					GameObject.FindObjectOfType<UI_Manager> ().UpdateMana(character.currentMana);
+					character.manaRegenCooldown = character.timeForManaRegen;
 				}
 			}
 		}
 		//Debug
 		raycastHitPosition = lastRaycastHit.point;
-		if (manaRegenCooldown > 0f) {
-			manaRegenCooldown -= Time.deltaTime;
+		if (character.manaRegenCooldown > 0f) {
+			character.manaRegenCooldown -= Time.deltaTime;
 		}
-		if (currentMana < maxMana && manaRegenCooldown <= 0f) {
-			currentMana++;
-			GameObject.FindObjectOfType<UI_Manager> ().UpdateMana(currentMana);
+		if (character.currentMana < character.maxMana && character.manaRegenCooldown <= 0f) {
+			character.currentMana++;
+			GameObject.FindObjectOfType<UI_Manager> ().UpdateMana(character.currentMana);
 		}
-		if (healthRegenCooldown > 0f) {
-			healthRegenCooldown -= Time.deltaTime;
+		if (character.healthRegenCooldown > 0f) {
+			character.healthRegenCooldown -= Time.deltaTime;
 		}
-		if (currentHealth < maxHealth && healthRegenCooldown <= 0f) {
-			currentHealth++;
-			GameObject.FindObjectOfType<UI_Manager> ().UpdateHealth(currentHealth);
+		if (character.currentHealth < character.maxHealth && character.healthRegenCooldown <= 0f) {
+			character.currentHealth++;
+			GameObject.FindObjectOfType<UI_Manager> ().UpdateHealth(character.currentHealth);
 		}
 	}
 
@@ -286,23 +274,23 @@ public class teleportTest : MonoBehaviour {
 	}
 
 	public void TakeDamage(int damage){
-		currentHealth -= damage;
-		healthRegenCooldown = timeForHealthRegen;
-		GameObject.FindObjectOfType<UI_Manager> ().UpdateHealth(currentHealth);
-		if (currentHealth <= 0) {
+		character.currentHealth -= damage;
+		character.healthRegenCooldown = character.timeForHealthRegen;
+		GameObject.FindObjectOfType<UI_Manager> ().UpdateHealth(character.currentHealth);
+		if (character.currentHealth <= 0) {
 			StartCoroutine(Respawn ());
 		}
 	}
 
 	public IEnumerator Respawn(){
-		this.gameObject.GetComponent<FirstPersonController> ().enabled = false;
-		yield return new WaitForSeconds (respawnTime);
-		this.gameObject.GetComponent<FirstPersonController> ().enabled = true;
-		this.transform.position = spawnpoint.transform.position;
-		currentHealth = maxHealth;
-		currentMana = maxMana;
-		GameObject.FindObjectOfType<UI_Manager> ().UpdateHealth(currentHealth);
-		GameObject.FindObjectOfType<UI_Manager> ().UpdateMana(currentMana);
+		this.gameObject.GetComponent<Character> ().enabled = false;
+		yield return new WaitForSeconds (character.respawnTime);
+		this.gameObject.GetComponent<Character> ().enabled = true;
+		this.transform.position = character.spawnpoint.transform.position;
+		character.currentHealth = character.maxHealth;
+		character.currentMana = character.maxMana;
+		GameObject.FindObjectOfType<UI_Manager> ().UpdateHealth(character.currentHealth);
+		GameObject.FindObjectOfType<UI_Manager> ().UpdateMana(character.currentMana);
 		//Destroy (this.gameObject);
 	}
 	/*public void Respawn(){

@@ -11,7 +11,7 @@ public class Spawnpoint : MonoBehaviour {
 		//Wenn der Collider der entered der Spieler ist wird bei dem dieser Punkt als Respawnpoint gesetzt
 		if (other.gameObject.tag == "Player") {
 
-			other.gameObject.GetComponent<teleportTest> ().spawnpoint = this.gameObject;
+			other.gameObject.GetComponent<Character> ().spawnpoint = this.gameObject;
 		}
 	}
 }
