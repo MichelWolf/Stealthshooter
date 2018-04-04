@@ -23,10 +23,11 @@ public class teleportTest : MonoBehaviour {
 	public GameObject sphereP1;
 	public GameObject sphereP2;
 
-
+	//Um auf den radius und die höhe des Spielers zugreifen zu können
 	private CharacterController charContr;
+	//Um auf das Manasystem zugreifen zu können
 	private Character character;
-
+	//Unterschiedliche Sprites die den Status des teleportierens anzeigen
 	public Sprite teleportNormal;
 	public Sprite teleportUp;
 	public Sprite teleportBlocked;
@@ -59,7 +60,9 @@ public class teleportTest : MonoBehaviour {
 				{
 					if (lastRaycastHit.normal.y >= 0.8) //Fläche zeigt nach oben
 					{
+						//zeige Indicator an der getroffenen Stelle an, Radius von der Wand entfernt, damit Spieler bei teleport nicht in der Wand landet
 						teleportIndicator.gameObject.transform.position = lastRaycastHit.point + (lastRaycastHit.normal * charContr.radius);
+						//Je nachdem ob der Spieler an die Stelle passt wird der Indicator aktualisiert und teleportieren zugelassen oder nicht
 						if (DoesPlayerFit (0)) {
 							isTeleportPossible = true;
 							teleportIndicator.GetComponentInChildren<Image> ().sprite = teleportNormal;
@@ -116,6 +119,8 @@ public class teleportTest : MonoBehaviour {
 					}
 					teleportIndicator.transform.rotation = Quaternion.LookRotation (-Camera.main.transform.forward);
 				}
+				//Debugging, Spheren sind Größe der Kugeln oben und unten im CharacterConroller bei Radius 0.5f
+				//Zeigt an, welcher Bereich durch DoesPlayerFit() überprüft wird
 				sphereP1.transform.position = p1;
 				sphereP2.transform.position = p2;
 			}
@@ -125,19 +130,25 @@ public class teleportTest : MonoBehaviour {
 				// teleport me to the indicator
 				teleportIndicator.SetActive(false);
 				if (isTeleportPossible && character.currentMana >= character.teleportCost) {
+					//Lässt sich nur teleportieren, wenn das man ausreicht und der Spieler an die Stelle passt
 					TeleportTo (teleportIndicator.transform.position, lastRaycastHit.normal);
+					//zieht die Teleportkosten vom Mana des Spielers ab
 					character.currentMana -= character.teleportCost;
+					//updatet die UI mit den neuen Mana-Daten
 					GameObject.FindObjectOfType<UI_Manager> ().UpdateMana(character.currentMana);
+					//setzt den Cooldown zum regenerieren des Manas
 					character.manaRegenCooldown = character.timeForManaRegen;
 				}
 			}
 		}
-		//Debug
+		//Debugging
 		raycastHitPosition = lastRaycastHit.point;
 	}
 
 	private bool IsLookingAtObject()
 	{
+		//Überprüft, ob der Spieler in der Range des Teleports ein Object trifft oder nicht
+		//Von der Cameramitte nach vorne
 		Vector3 origin = Camera.main.ViewportToWorldPoint (new Vector3(0.5f, 0.5f, 0.0f));
 		Vector3 direction = Camera.main.transform.forward;
 
@@ -153,6 +164,7 @@ public class teleportTest : MonoBehaviour {
 
 	private Vector3 GetPositionWhenNothingHit()
 	{
+		//Gibt die Position am Ende der Teleport-Range zurück, wird genutzt wenn IsLookingAtObject() == false
 		Vector3 origin = Camera.main.ViewportToWorldPoint(new Vector3(0.5f, 0.5f, 0.0f));
 		Vector3 direction = Camera.main.transform.forward;
 		return origin + (direction * range);
@@ -163,7 +175,7 @@ public class teleportTest : MonoBehaviour {
 		//state == 0, check nach oben
 		//state == 1, check an Kante
 		//state == 2, check von oben
-		//CharacterController charContr = GetComponent<CharacterController>();
+		//state == 3, check ohne Kante
 		isLedge = false;
 		if (state == 0) {
 			Debug.Log ("Normale nach oben");
@@ -278,6 +290,7 @@ public class teleportTest : MonoBehaviour {
 
 	private void TeleportTo(Vector3 position, Vector3 normal)
 	{
+		//instant teleport an die Stelle die vorher Überprüft wurde
 		//transform.position = lastRaycastHit.point; + lastRaycastHit.normal;
 		transform.position = position;// + normal;
 	}
