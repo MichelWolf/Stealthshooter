@@ -157,7 +157,7 @@ public class Teleportation : MonoBehaviour {
 		Vector3 origin = Camera.main.ViewportToWorldPoint (new Vector3(0.5f, 0.5f, 0.0f));
 		Vector3 direction = Camera.main.transform.forward;
 
-		if (Physics.Raycast(origin, direction, out lastRaycastHit, range))
+		if (Physics.Raycast(origin, direction, out lastRaycastHit, range, layerMask))
 		{
 			return true;
 		}
