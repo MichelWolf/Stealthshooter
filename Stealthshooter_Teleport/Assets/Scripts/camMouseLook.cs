@@ -13,7 +13,7 @@ public class camMouseLook : MonoBehaviour {
 	GameObject character;
 	// Use this for initialization
 	void Start () {
-		character = this.transform.parent.gameObject;
+		character = this.transform.parent.gameObject.transform.parent.gameObject;
 	}
 	
 	// Update is called once per frame
