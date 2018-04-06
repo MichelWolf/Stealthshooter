@@ -125,8 +125,13 @@ public class Teleportation : MonoBehaviour {
 				}
 				//Debugging, Spheren sind Größe der Kugeln oben und unten im CharacterConroller bei Radius 0.5f
 				//Zeigt an, welcher Bereich durch DoesPlayerFit() überprüft wird
+<<<<<<< HEAD:Stealthshooter_Teleport/Assets/Scripts/Teleportation.cs
 				//sphereP1.transform.position = p1;
 				//sphereP2.transform.position = p2;
+=======
+				sphereP1.transform.position = p1;
+				sphereP2.transform.position = p2;
+>>>>>>> 6655149abe04f7f73c0b020ff4be1aea96c9ab7e:Stealthshooter_Teleport/Assets/Scripts/teleportTest.cs
 			}
 
 			if (Input.GetKeyUp(KeyCode.E))

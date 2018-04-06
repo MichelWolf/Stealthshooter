@@ -14,9 +14,13 @@ public class Character : MonoBehaviour
 	public float standHeight = 2f;
 	public float crouchHeight = 1.5f;
 
+<<<<<<< HEAD
 	public float verticalVelocity;
 	public float gravity = 100.0f;
 	public float jumpForce = 10.0f;
+=======
+	public float jumpHeight = 2f;
+>>>>>>> 6655149abe04f7f73c0b020ff4be1aea96c9ab7e
 
 	//CCTV testobject
 	public GameObject camTest;
@@ -56,6 +60,7 @@ public class Character : MonoBehaviour
 	{
 		GetWalkingMode ();
 		//Raycast von mitte des Spielers bis Hälfte der Spielerhöhe + 0.1f nach unten. wenn etwas getroffen wird ist der Spieler am Boden 
+<<<<<<< HEAD
 		isGrounded = Physics.Raycast (this.transform.position, Vector3.down, 0.1f);
 
 		//wenn der Spieler läuft, Bewegungen mit walkSpeed
@@ -102,6 +107,51 @@ public class Character : MonoBehaviour
 		{
 			camTest.GetComponentInChildren<CCTVCamera> ().isControllable = false;
 			Camera.main.gameObject.GetComponent<camMouseLook> ().enabled = true;
+=======
+		isGrounded = Physics.Raycast (this.transform.position, Vector3.down, charContr.height / 2 + 0.1f);
+		if (isGrounded && velocity.y < 0)
+			velocity.y = 0f;
+
+		//wenn der Spieler läuft, Bewegungen mit walkSpeed
+		if (walkingMode == WalkingMode.walking) {
+			charContr.height = standHeight;
+			float translation = Input.GetAxis ("Vertical") * walkSpeed;
+			float straffe = Input.GetAxis ("Horizontal") * walkSpeed;
+			translation *= Time.deltaTime;
+			straffe *= Time.deltaTime;
+			transform.Translate (straffe, 0, translation);
+		} //wenn der Spieler rennt, Bewegungen mit runSpeed
+		else if (walkingMode == WalkingMode.running) {
+			charContr.height = standHeight;
+			float translation = Input.GetAxis ("Vertical") * runSpeed;
+			float straffe = Input.GetAxis ("Horizontal") * runSpeed;
+			translation *= Time.deltaTime;
+			straffe *= Time.deltaTime;
+			transform.Translate (straffe, 0, translation);
+		} //wenn der Spieler schleicht, Bewegungen mit crouchSpeed
+		else if (walkingMode == WalkingMode.crouching) {
+			charContr.height = crouchHeight;
+			float translation = Input.GetAxis ("Vertical") * crouchSpeed;
+			float straffe = Input.GetAxis ("Horizontal") * crouchSpeed;
+			translation *= Time.deltaTime;
+			straffe *= Time.deltaTime;
+			transform.Translate (straffe, 0, translation);
+		}
+		//Wenn der Spieler die "Jump"-Taste (space) drückt und sich auf dem Boden befindet
+		if (Input.GetButtonDown("Jump") && isGrounded)
+			velocity.y += Mathf.Sqrt(jumpHeight * -2f * Physics.gravity.y);
+
+		velocity.y += Physics.gravity.y * Time.deltaTime;
+		charContr.Move(velocity * Time.deltaTime);
+
+		//wenn C gedrückt ist wechsel auf CCTV-Steuerung mit der Maus
+		if (Input.GetKeyDown (KeyCode.C)) {
+			camTest.GetComponentInChildren<CCTVCamera>().isControllable = true;
+			Camera.main.gameObject.GetComponent<camMouseLook>().enabled = false;
+		}else if (Input.GetKeyUp (KeyCode.C)) {
+			camTest.GetComponentInChildren<CCTVCamera>().isControllable = false;
+			Camera.main.gameObject.GetComponent<camMouseLook>().enabled = true;
+>>>>>>> 6655149abe04f7f73c0b020ff4be1aea96c9ab7e
 		}
 
 		//wenn "Fire1" (LMB) gedrückt wird und die Waffe nicht nachlädt
@@ -144,7 +194,10 @@ public class Character : MonoBehaviour
 	}
 
 	//Muss überarbeitet werden, lohnt sich nicht zu kommentieren
+<<<<<<< HEAD
 	//Muss überarbeitet werden, lohnt sich nicht zu kommentieren
+=======
+>>>>>>> 6655149abe04f7f73c0b020ff4be1aea96c9ab7e
 	public void GetWalkingMode()
 	{
 		if (Input.GetKey (KeyCode.LeftShift))
