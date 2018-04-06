@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Gun : MonoBehaviour {
-
 	private RaycastHit hit;
 
 	public float gunDamage = 1.0f;
@@ -16,7 +15,6 @@ public class Gun : MonoBehaviour {
 	public float reloadTime = 1f;
 	internal bool isReloading = false;
 
-	// die Kugeln werden am gunEnd erstellt
 	public Transform gunEnd;
 
 	// Use this for initialization
@@ -33,29 +31,20 @@ public class Gun : MonoBehaviour {
 		}
 	}
 	public void Shoot(RaycastHit hit){
-		//Wenn genug Munition vorhanden ist und die Firerate es zulässt
 		if (currentAmmo > 0 && fireCooldownLeft <= 0) {
-			//erstellt eine Kugel am gunEnd
 			GameObject b = (GameObject)Instantiate (bullet, gunEnd.position, this.transform.rotation);
-			//setzt die Richtung der Kugel, Vector von GunEnd zu der vom Raycast getroffenen Position 
 			b.GetComponent<Bullet> ().direction = hit.point - gunEnd.position;
-			//zieht Munition ab
+			b.GetComponent<Bullet> ().target = hit.point;
 			currentAmmo--;
-			//setzt den Cooldown zum nächsten Schießen
 			fireCooldownLeft = fireCooldown;
 		}
 
 	}
 	public IEnumerator Reload(){
-		//wird benötigt um schießen während des nachladens zu verbieten
 		isReloading = true;
-		//nachladen dauert eine reloadTime
 		yield return new WaitForSeconds (reloadTime);
-		//Munition wird wieder gefüllt
 		currentAmmo = maxAmmo;
-		//Nachladen abgeschlossen
 		isReloading = false;
-		//UI aktualisieren
 		GameObject.FindObjectOfType<UI_Manager> ().UpdateAmmo(currentAmmo, maxAmmo);
 	}
 }
