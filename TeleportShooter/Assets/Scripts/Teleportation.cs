@@ -42,7 +42,7 @@ public class Teleportation : MonoBehaviour {
 		teleportIndicator.SetActive (false);
 		charContr = GetComponent<CharacterController>();
 		character = GetComponent<Character> ();
-		layerMask = 1 << 8;
+		layerMask = 1 << 8 | 1 << 2;
 		layerMask = ~layerMask;
 	}
 
