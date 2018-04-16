@@ -13,6 +13,7 @@ public class Teleportation : MonoBehaviour {
 	public bool isLedge = false;
 	public float ledgeDetectionRange = 1.0f;
 	internal bool isTeleportPossible;
+	Vector3 teleportPos;
 
 	//Debugging
 	internal Vector3 raycastHitPosition;
@@ -20,6 +21,7 @@ public class Teleportation : MonoBehaviour {
 	internal Vector3 p2;
 	internal GameObject sphereP1;
 	internal GameObject sphereP2;
+	public GameObject DebugTeleportPos; 
 
 	//Um auf den radius und die höhe des Spielers zugreifen zu können
 	private CharacterController charContr;
@@ -48,59 +50,86 @@ public class Teleportation : MonoBehaviour {
 
 	// Update is called once per frame
 	void Update () {
+
 		if (teleportIndicator == null)
 		{
 			Debug.Log("Teleportation will only work with an indicator set in the fps camera");
 		}
 		else
 		{ 
-			if (Input.GetKey(KeyCode.E))
+			if (Input.GetKey(KeyCode.E) && character.currentMana >= character.teleportCost)
 			{
 				teleportIndicator.SetActive(true);
+				if (DebugTeleportPos != null)
+				{
+					DebugTeleportPos.SetActive (true);
+				}
 				// spawn teleport location
 				//CheckDoesPlayerFit();
 
 				// I hit an object: spawn indicator on that
 				if (IsLookingAtObject())
 				{
-					if (lastRaycastHit.normal.y >= 0.8) //Fläche zeigt nach oben
+					if (lastRaycastHit.normal.y >= 0.95) //Fläche zeigt nach oben
 					{
 						//zeige Indicator an der getroffenen Stelle an, Radius von der Wand entfernt, damit Spieler bei teleport nicht in der Wand landet
 						teleportIndicator.gameObject.transform.position = lastRaycastHit.point + (lastRaycastHit.normal * charContr.radius);
+						//teleportPos = teleportIndicator.gameObject.transform.position; //?
 						//Je nachdem ob der Spieler an die Stelle passt wird der Indicator aktualisiert und teleportieren zugelassen oder nicht
-						if (DoesPlayerFit (0)) {
+						if (DoesPlayerFit (0))
+						{
 							isTeleportPossible = true;
 							teleportIndicator.GetComponentInChildren<Image> ().sprite = teleportNormal;
-						} else {
+						} else
+						{
 							isTeleportPossible = false;
 							teleportIndicator.GetComponentInChildren<Image> ().sprite = teleportBlocked;
 						}
 						teleportIndicator.transform.rotation = Quaternion.LookRotation (-Camera.main.transform.forward);
-					} 
-					else if (lastRaycastHit.normal.x >= 0.8 || lastRaycastHit.normal.z >= 0.8 || lastRaycastHit.normal.x <= -0.8 || lastRaycastHit.normal.z <= -0.8) //Fläche ist eine Wand, zeigt zur Seite
+					} else if (lastRaycastHit.normal.x >= 0.8 || lastRaycastHit.normal.z >= 0.8 || lastRaycastHit.normal.x <= -0.8 || lastRaycastHit.normal.z <= -0.8) //Fläche ist eine Wand, zeigt zur Seite
 					{
-						if (DoesPlayerFit (1)) {
-							if (isLedge == true) {
+						if (DoesPlayerFit (1))
+						{
+							if (isLedge == true)
+							{
 								teleportIndicator.gameObject.transform.position = p1;
 								teleportIndicator.GetComponentInChildren<Image> ().sprite = teleportUp;
-							} else {
+							} else
+							{
 								teleportIndicator.gameObject.transform.position = lastRaycastHit.point + (lastRaycastHit.normal * charContr.radius);
 								teleportIndicator.GetComponentInChildren<Image> ().sprite = teleportNormal;
 							}
 							isTeleportPossible = true;
-						} else {
+						} else
+						{
 							isTeleportPossible = false;
 							teleportIndicator.GetComponentInChildren<Image> ().sprite = teleportBlocked;
 						}
 						teleportIndicator.transform.rotation = Quaternion.LookRotation (lastRaycastHit.normal);
-					}
-					else if (lastRaycastHit.normal.y <= -0.8) //Fläche zeigt nach unten
+					} else if (lastRaycastHit.normal.y <= -0.8) //Fläche zeigt nach unten
 					{
 						teleportIndicator.gameObject.transform.position = lastRaycastHit.point + (lastRaycastHit.normal * charContr.radius);
-						if (DoesPlayerFit (2)) {
+						if (DoesPlayerFit (2))
+						{
 							isTeleportPossible = true;
 							teleportIndicator.GetComponentInChildren<Image> ().sprite = teleportNormal;
-						}else {
+						} else
+						{
+							isTeleportPossible = false;
+							teleportIndicator.GetComponentInChildren<Image> ().sprite = teleportBlocked;
+						}
+						teleportIndicator.transform.rotation = Quaternion.LookRotation (-Camera.main.transform.forward);
+					}
+					//Kein Boden/Keine Wand -> Rampe (hoffentlich)
+					else
+					{
+						teleportIndicator.gameObject.transform.position = lastRaycastHit.point + (lastRaycastHit.normal * charContr.radius);
+						if (DoesPlayerFit (1))
+						{
+							isTeleportPossible = true;
+							teleportIndicator.GetComponentInChildren<Image> ().sprite = teleportNormal;
+						} else
+						{
 							isTeleportPossible = false;
 							teleportIndicator.GetComponentInChildren<Image> ().sprite = teleportBlocked;
 						}
@@ -136,7 +165,8 @@ public class Teleportation : MonoBehaviour {
 				teleportIndicator.SetActive(false);
 				if (isTeleportPossible && character.currentMana >= character.teleportCost) {
 					//Lässt sich nur teleportieren, wenn das man ausreicht und der Spieler an die Stelle passt
-					TeleportTo (teleportIndicator.transform.position, lastRaycastHit.normal);
+					//TeleportTo (teleportIndicator.transform.position, lastRaycastHit.normal);
+					TeleportTo (teleportPos, lastRaycastHit.normal);
 					//zieht die Teleportkosten vom Mana des Spielers ab
 					character.currentMana -= character.teleportCost;
 					//updatet die UI mit den neuen Mana-Daten
@@ -144,10 +174,31 @@ public class Teleportation : MonoBehaviour {
 					//setzt den Cooldown zum regenerieren des Manas
 					character.manaRegenCooldown = character.timeForManaRegen;
 				}
+
+				if (DebugTeleportPos != null)
+				{
+					DebugTeleportPos.SetActive (false);
+				}
 			}
 		}
 		//Debugging
 		raycastHitPosition = lastRaycastHit.point;
+
+		RaycastHit telpos;
+		if (Physics.SphereCast (teleportIndicator.gameObject.transform.position + new Vector3(0, charContr.radius + 0.001f, 0), charContr.radius, Vector3.down, out telpos, charContr.height))
+		{ 
+			teleportPos = telpos.point + new Vector3 (0.0f, charContr.radius + 0.01f, 0.0f);
+			teleportPos.x = teleportIndicator.gameObject.transform.position.x;
+			teleportPos.z = teleportIndicator.gameObject.transform.position.z;
+		} else
+		{
+			teleportPos = teleportIndicator.gameObject.transform.position - new Vector3(0, charContr.height, 0);
+		}
+
+		if (DebugTeleportPos != null)
+		{
+			DebugTeleportPos.transform.position = teleportPos;
+		}
 	}
 
 	private bool IsLookingAtObject()
@@ -185,18 +236,8 @@ public class Teleportation : MonoBehaviour {
 		if (state == 0)
 		{
 			Debug.Log ("Normale nach oben");
-			//p1 = lastRaycastHit.point + charContr.center + Vector3.up * -charContr.height * 0.5F;
-			p1 = lastRaycastHit.point + new Vector3 (0.0f, charContr.radius + 0.01f, 0.0f);
-			p2 = p1 + Vector3.up * (charContr.height / 2);
-
-			if (Physics.CheckCapsule (p1, p2, charContr.radius, layerMask))
-			{
-				return false;
-			} else
-			{
-				Debug.Log ("Alles frei!");
-				return true;
-			}
+			Vector3 pos = lastRaycastHit.point + new Vector3 (0.0f, charContr.height + 0.01f, 0.0f);
+			return checkFromAbove (pos);
 		} else if (state == 1)
 		{
 			Debug.Log ("Normale zur Seite");
@@ -209,14 +250,9 @@ public class Teleportation : MonoBehaviour {
 				isLedge = false;
 				p1 = lastRaycastHit.point + lastRaycastHit.normal * (charContr.radius + 0.01f);
 				p2 = p1 + Vector3.up * (charContr.height / 2);
-				if (Physics.CheckCapsule (p1, p2, charContr.radius))
-				{
-					return false;
-				} else
-				{
-					Debug.Log ("Alles frei!");
-					return true;
-				}
+
+				Vector3 pos = (lastRaycastHit.point + lastRaycastHit.normal * (charContr.radius + 0.01f));
+				return checkFromAbove(pos);
 
 			} else
 			{
@@ -226,9 +262,11 @@ public class Teleportation : MonoBehaviour {
 			}
 		} else if (state == 2)
 		{
+			// check from below
 			Debug.Log ("Normale nach unten");
-			//p1 = lastRaycastHit.point + charContr.center + Vector3.up * -charContr.height * 0.5F;
-			p2 = lastRaycastHit.point + new Vector3 (0.0f, -(charContr.radius + 0.01f), 0.0f);
+			Vector3 pos = (lastRaycastHit.point + lastRaycastHit.normal * (charContr.radius + 0.01f));
+			return checkFromBelow(pos);
+			/*p2 = lastRaycastHit.point + new Vector3 (0.0f, -(charContr.radius + 0.01f), 0.0f);
 			p1 = p2 - Vector3.up * (charContr.height / 2);
 
 			if (Physics.CheckCapsule (p1, p2, charContr.radius))
@@ -238,65 +276,16 @@ public class Teleportation : MonoBehaviour {
 			{
 				Debug.Log ("Alles frei!");
 				return true;
-			}
+			}*/
 		} else if (state == 3)
 		{
 			Debug.Log ("Nichts getroffen");
 			Vector3 pos = GetPositionWhenNothingHit ();
-			RaycastHit startPoint;
-			if (Physics.Raycast (pos, Vector3.down, out startPoint))
-			{ // max distance nötig?
-				// raycast nach unten, um Boden zu finden
-				// von dort CheckSphere
-				//p1 = startPoint.point + charContr.center + Vector3.up * -charContr.height * 0.5F;//+ new Vector3(0.0f, 0.6f, 0.0f);
-				p1 = startPoint.point + new Vector3 (0.0f, charContr.radius + 0.01f, 0.0f);
-				//Debug.Log(p1);
-				//Debug.Log (p1 + Vector3.up * (charContr.height / 2));
-				p2 = p1 + Vector3.up * (charContr.height / 2);
-				//DebugExtension.DebugCapsule(startPoint.point, startPoint.point + Vector3.up * charContr.height, charContr.radius, 5);
-				if (Physics.CheckCapsule (p1, p2, charContr.radius))
-				{
-					Debug.Log ("Boden gecheckt: passt nicht");
-					return false;
-				} else
-				{
-					Debug.Log ("Boden gecheckt: passt!");
-					return true;
-				}
-			} else if (Physics.Raycast (pos, Vector3.up, out startPoint))
-			{
-				// falls nicht gefunden, Raycast nach oben, um Decke zu finden
-				// von dort CheckSphere
-				//p1 = startPoint.point + charContr.center + Vector3.up * charContr.height * 0.5F;//new Vector3(0.0f, 0.6f, 0.0f);
-				p1 = startPoint.point - new Vector3 (0.0f, charContr.radius + 0.05f, 0.0f);
-				p2 = p1 + Vector3.down * (charContr.height / 2);
-				if (Physics.CheckCapsule (p1, p2, charContr.radius))
-				{
-					Debug.Log ("Decke gecheckt: passt nicht");
-					return false;
-				} else
-				{
-					Debug.Log ("Decke gecheckt: passt!");
-					return true;
-				}
-			} else
-			{
-				// falls gar nichts gefunden: Check Sphere mit Mittelpunkt an aktueller Stelle der Kugel
-				p1 = pos + Vector3.down * charContr.height / 2;
-				p2 = p1 + Vector3.up * charContr.height / 2;
-				if (Physics.CheckCapsule (p1, p2, charContr.radius))
-				{
-					Debug.Log ("Generell gecheckt: passt nicht");
-					return false;
-				} else
-				{
-					Debug.Log ("Generell gecheckt: passt!");
-					return true;
-				}
-			}
+			return checkFromAbove (pos);
 
 		} else if (state == 4)
 		{
+			//aufstehen
 			//sphereP1.SetActive (true);
 			//sphereP2.SetActive (true);
 			/*p1 = charContr.transform.position + Vector3.down * (charContr.height / 2) + new Vector3(3,0.01f, 0);
@@ -324,6 +313,63 @@ public class Teleportation : MonoBehaviour {
 		}
 		return true;
 	}
+
+	private bool checkFromAbove(Vector3 pos)
+	{
+		RaycastHit startPoint;
+		if (Physics.SphereCast (pos, charContr.radius, Vector3.down, out startPoint, charContr.height))
+		{ 
+			// spherecast nach unten, um Boden zu finden
+			// von dort CheckSphere
+			p1 = startPoint.point + new Vector3 (0.0f, charContr.radius + 0.01f, 0.0f);
+			p1.x = pos.x;
+			p1.z = pos.z;
+			p2 = p1 + Vector3.up * (charContr.height / 2);
+			if (Physics.CheckCapsule (p1, p2, charContr.radius))
+			{
+				Debug.Log ("Boden gecheckt: passt nicht");
+				return false;
+			} else
+			{
+				Debug.Log ("Boden gecheckt: passt!");
+				return true;
+			}
+		} 
+		else
+		{
+			return true;
+		}
+
+	}
+
+	private bool checkFromBelow(Vector3 pos)
+	{
+		RaycastHit startPoint;
+		if (Physics.SphereCast (pos, charContr.radius, Vector3.up, out startPoint, charContr.height))
+		{ 
+			// spherecast nach unten, um Boden zu finden
+			// von dort CheckSphere
+			p2 = startPoint.point - new Vector3 (0.0f, charContr.radius + 0.01f, 0.0f);
+			p2.x = pos.x;
+			p2.z = pos.z;
+			p1 = p2 + Vector3.down * (charContr.height / 2);
+			if (Physics.CheckCapsule (p1, p2, charContr.radius))
+			{
+				Debug.Log ("Boden gecheckt: passt nicht");
+				return false;
+			} else
+			{
+				Debug.Log ("Boden gecheckt: passt!");
+				return true;
+			}
+		} 
+		else
+		{
+			return true;
+		}
+
+	}
+
 
 	private void TeleportTo(Vector3 position, Vector3 normal)
 	{
